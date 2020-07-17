@@ -92,10 +92,10 @@ def add_product():
                     break
                 except IntegrityError:
                     product_last_updated = Product.select().where(Product.product_name == name).get().date_updated
-                    updated = datetime.date()
+                    updated = datetime.datetime.now()
                     if product_last_updated <= updated:
                         product_record = Product.select().where(Product.product_name == name).get()
-                        product_record.product_price = int(price.replace('.', ''))
+                        product_record.product_price = int(str(price).replace('.', ''))
                         product_record.product_quantity = quantity
                         product_record.date_updated = datetime.datetime.now()
                         product_record.save()
@@ -104,8 +104,8 @@ def add_product():
             else:
                 break
             
-        except TypeError:
-            print("Please enter a valid entry\n")
+        except TypeError as err:
+            print("Please enter a valid entry, the error was {}\n".format(err))
     
 
 def backup_inventory():
