@@ -105,7 +105,7 @@ def add_product():
                 break
             
         except TypeError as err:
-            print("Please enter a valid entry, the error was {}\n".format(err))
+            print("Please enter a valid entry, the error was: {}\n".format(err))
     
 
 def backup_inventory():
