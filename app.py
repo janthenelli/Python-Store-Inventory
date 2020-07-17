@@ -1,7 +1,6 @@
 import csv
 import datetime
 import os
-import re
 
 from collections import OrderedDict
 from decimal import Decimal
@@ -73,7 +72,7 @@ def add_product():
             if not temp_name.isalpha():
                 raise TypeError 
             price = input("Enter the price for one {}, (format: 3.29): ".format(name))
-            if not price.isnumeric() and '.' not in price :
+            if not price.isnumeric() and price.count('.') > 1:
                 raise TypeError
             price = Decimal(price).quantize(Decimal('1.00'))
             quantity = input("Enter the amount of {} you would like to add: ".format(name))
@@ -92,11 +91,15 @@ def add_product():
                     print("\nProduct created successfully!")
                     break
                 except IntegrityError:
-                    product_record = Product.get(product_name=name)
-                    product_record.product_price = int(price.replace('.', ''))
-                    product_record.product_quantity = quantity
-                    product_record.date_updated = datetime.datetime.now()
-                    product_record.save()
+                    product_last_updated = Product.select().where(Product.product_name == name).get().date_updated
+                    updated = datetime.date()
+                    if product_last_updated <= updated:
+                        product_record = Product.select().where(Product.product_name == name).get()
+                        product_record.product_price = int(price.replace('.', ''))
+                        product_record.product_quantity = quantity
+                        product_record.date_updated = datetime.datetime.now()
+                        product_record.save()
+                        print("{} already exists and has been updated.".format(name))
                     break
             else:
                 break
