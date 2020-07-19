@@ -1,6 +1,7 @@
 import csv
 import datetime
 import os
+import re
 
 from collections import OrderedDict
 from decimal import Decimal
@@ -38,18 +39,21 @@ def add_to_db(**kwargs):
 
 def view_product():
     """View product in inventory by ID"""
-    try:
-        id = input("Enter the ID of the item you would like to view: ")
-        product = Product.get(Product.product_id == id)
-        display_product(product)
-    except DoesNotExist:
-        print("No item with an ID of {} exists, please enter a valid ID".format(id))
-        view_product()
-    another = input("\n\nWould you like to view another product? [Yn] ")
-    if another.lower() != 'n':
-        print("")
-        view_product()
-    clear()
+    while True:
+        try:
+            id = input("Enter the ID of the item you would like to view: ")
+            product = Product.get(Product.product_id == id)
+            display_product(product)
+        except DoesNotExist:
+            print("No item with an ID of {} exists, please enter a valid ID".format(id))
+            view_product()
+        another = input("\n\nWould you like to view another product? [Yn] ")
+        if another.lower() != 'n':
+            print("")
+            view_product()
+        else:
+            break
+        clear()
     
 
 def display_product(product):
@@ -72,7 +76,11 @@ def add_product():
             if not temp_name.isalpha():
                 raise TypeError 
             price = input("Enter the price for one {}, (format: 3.29): ".format(name))
-            if not price.isnumeric() and price.count('.') > 1:
+            if not price:
+                raise TypeError
+            if re.search(r'[a-zA-Z]', price):
+                raise TypeError
+            if price.count('.') > 1:
                 raise TypeError
             price = Decimal(price).quantize(Decimal('1.00'))
             quantity = input("Enter the amount of {} you would like to add: ".format(name))
@@ -99,13 +107,14 @@ def add_product():
                         product_record.product_quantity = quantity
                         product_record.date_updated = datetime.datetime.now()
                         product_record.save()
-                        print("{} already exists and has been updated.".format(name))
+                        print("\n{} already exists and has been updated.".format(name))
                     break
             else:
+                print(f"{name} discarded.")
                 break
             
         except TypeError as err:
-            print("Please enter a valid entry, the error was: {}\n".format(err))
+            print("Please enter a valid entry.\n".format(err))
     
 
 def backup_inventory():
